@@ -1,0 +1,36 @@
+/******** Content ******/
+.container {
+  h1 {
+    margin: 30px 0 40px 0;
+  }
+}
+
+/******* Weather icons alias **********/
+
+.wi {
+  font-size: 105px;
+  color: #bd2130;
+  padding: 20px;
+}
+
+.wi-partly-cloudy-night:before {
+  content: "\f083";
+}
+
+.wi-partly-cloudy-day:before {
+  content: "\f002";
+}
+
+.wi-wind:before {
+  content: "\f085";
+}
+
+.wi-clear-day:before {
+  content: "\f00d";
+}
+
+/****** Hide Dots Carousel ******/
+
+.VueCarousel-pagination {
+  display: none;
+}
