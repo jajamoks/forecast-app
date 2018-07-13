@@ -44,3 +44,6 @@ minutes and for history data 1 day)
 4. Install Redis `https://laravel.com/docs/5.6/redis`
 
   
+## Preview
+
+https://youtu.be/dG8HjVoPr7o
