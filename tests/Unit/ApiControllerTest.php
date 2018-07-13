@@ -22,10 +22,10 @@ use App\Http\Helpers\DarkSkyConcurrent;
 
 class ApiControllerTest extends TestCase
 {
-
+    /**
+     * @var Controller to test
+     */
     protected $apiController;
-
-    protected $fakeResponses;
 
     /**
      * @var string Latitude
@@ -73,6 +73,9 @@ class ApiControllerTest extends TestCase
 
     }
 
+    /**
+     * Test today forecast cache usage
+     */
     public function testCacheToday()
     {
         $request = new Request();
@@ -83,7 +86,9 @@ class ApiControllerTest extends TestCase
         $this->apiController->forecastToday($request);
     }
 
-
+    /**
+     * Test future cache forecast
+     */
     public function testCacheFuture()
     {
         $request = new Request();
@@ -96,7 +101,7 @@ class ApiControllerTest extends TestCase
     }
 
     /**
-     *
+     * Test history cache forecast
      */
     public function _testCacheHistory()
     {
