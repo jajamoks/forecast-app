@@ -16,10 +16,18 @@ use Response;
 
 class DarkSkyConcurrent extends DarkSky
 {
-    // GuzzleHttp Client
+    /**
+     * @var \GuzzleHttp\Client
+     */
     protected $client;
 
-    public function __construct($client)
+
+    /**
+     * DarkSkyConcurrent constructor.
+     *
+     * @param \GuzzleHttp\Client $client
+     */
+    public function __construct( \GuzzleHttp\Client $client)
     {
         parent::__construct();
 

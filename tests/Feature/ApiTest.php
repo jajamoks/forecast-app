@@ -1,133 +1,48 @@
 <?php
 namespace Tests\Feature;
 
+use App\Http\Controllers\ApiController;
+use Faker\Factory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use http\Env\Request;
+use Illuminate\Support\Facades\Cache;
+use Tests\CreatesApplication;
 use Tests\TestCase;
 
 /**
  * Class ApiTest
  *
- * With Mockery we are simulating dark sky api requests.
- *
  * @package Tests\Feature
  */
 class ApiTest extends TestCase
 {
+    use CreatesApplication;
 
+    /**
+     * @var string Latitude
+     */
+    protected $lat;
+
+    /**
+     * @var string Longitude
+     */
+    protected $lon;
+
+    /**
+     * Init latitude and longitude values
+     *
+     * @return void
+     */
     public function setUp()
     {
         parent::setUp();
 
-        /**
-         * A fake api service to avoid doing request to the real API.
-         * We are going to test our own functionality.
-         */
-        $this->app->singleton('DarkSkyConc', function($app)
-        {
-            // Create a mock and queue two responses.
-            $mock = new MockHandler([
-                new Response(200, ['Content-Type' => 'application/json'], json_encode([
-                    'daily' => [
-                        'data' => [
-                            [
-                                'time' => 1528772400,
-                                'temperatureMin' => 10,
-                                'temperatureHigh' => 24,
-                                'summary' => 'Light rain until afternoon.',
-                                'icon' => 'rain'
-                            ],
-                        ]
-                    ]
-                ])),
-                new Response(200, ['Content-Type' => 'application/json'], json_encode([
-                    'daily' => [
-                        'data' => [
-                            [
-                                'time' => 1528772400,
-                                'temperatureMin' => 10,
-                                'temperatureHigh' => 24,
-                                'summary' => 'Light rain until afternoon.',
-                                'icon' => 'rain'
-                            ],
-                        ]
-                    ]
-                ])),
-                new Response(200, ['Content-Type' => 'application/json'], json_encode([
-                    'daily' => [
-                        'data' => [
-                            [
-                                'time' => 1528772400,
-                                'temperatureMin' => 10,
-                                'temperatureHigh' => 24,
-                                'summary' => 'Light rain until afternoon.',
-                                'icon' => 'rain'
-                            ],
-                        ]
-                    ]
-                ])),
-                new Response(200, ['Content-Type' => 'application/json'], json_encode([
-                    'daily' => [
-                        'data' => [
-                            [
-                                'time' => 1528772400,
-                                'temperatureMin' => 10,
-                                'temperatureHigh' => 24,
-                                'summary' => 'Light rain until afternoon.',
-                                'icon' => 'rain'
-                            ],
-                        ]
-                    ]
-                ])),
-                new Response(200, ['Content-Type' => 'application/json'], json_encode([
-                    'daily' => [
-                        'data' => [
-                            [
-                                'time' => 1528772400,
-                                'temperatureMin' => 10,
-                                'temperatureHigh' => 24,
-                                'summary' => 'Light rain until afternoon.',
-                                'icon' => 'rain'
-                            ],
-                        ]
-                    ]
-                ])),
-                new Response(200, ['Content-Type' => 'application/json'], json_encode([
-                    'daily' => [
-                        'data' => [
-                            [
-                                'time' => 1528772400,
-                                'temperatureMin' => 10,
-                                'temperatureHigh' => 24,
-                                'summary' => 'Light rain until afternoon.',
-                                'icon' => 'rain'
-                            ],
-                        ]
-                    ]
-                ])),
-                new Response(200, ['Content-Type' => 'application/json'], json_encode([
-                    'daily' => [
-                        'data' => [
-                            [
-                                'time' => 1528772400,
-                                'temperatureMin' => 11,
-                                'temperatureHigh' => 24,
-                                'summary' => 'Light rain until afternoon.',
-                                'icon' => 'rain'
-                            ],
-                        ]
-                    ]
-                ]))
-            ]);
-
-            $handler = HandlerStack::create($mock);
-            $client = new Client(['handler' => $handler]);
-
-            return new \App\Http\Helpers\DarkSkyConcurrent($client);
-        });
-
+        $faker = Factory::create();
+        $this->lat = $faker->latitude();
+        $this->lon = $faker->longitude();
     }
 
     /**
@@ -137,10 +52,14 @@ class ApiTest extends TestCase
      */
     public function testOneDateForecast()
     {
-        $response = $this->get('/api/today?lat=-34.60368440000001&lon=-58.381559100000004');
 
-        $this->assertEquals(json_decode($response->getContent())->time, 1528772400);
-        $this->assertEquals(json_decode($response->getContent())->temperatureMin, 10);
+        $response = $this->get('/api/today?lat='.$this->lat.'&lon='.$this->lon);
+
+        $this->assertNotEmpty($response);
+        $responseData = json_decode($response->getContent());
+
+        $this->assertObjectHasAttribute('temperatureMin', $responseData);
+        $this->assertObjectHasAttribute('temperatureMin', $responseData);
     }
 
 
@@ -151,12 +70,15 @@ class ApiTest extends TestCase
      */
     public function testFutureForecast()
     {
-        $response = $this->get('/api/future?lat=-34.60368440000001&lon=-58.381559100000004');
+        $response = $this->get('/api/future?lat='.$this->lat.'&lon='.$this->lon);
 
         $responseData = json_decode($response->getContent());
         $this->assertNotEmpty($responseData);
-        $this->assertEquals($responseData[0]->temperatureMin, 10);
-        $this->assertEquals($responseData[6]->temperatureMin, 11);
+        $this->assertObjectHasAttribute('temperatureMin', $responseData[0]);
+        $this->assertObjectHasAttribute('temperatureMin', $responseData[6]);
+        $this->assertNotEmpty($responseData[0]->temperatureMin);
+        $this->assertNotEmpty($responseData[6]->temperatureMin);
+        $this->assertArrayHasKey(4,$responseData);
     }
 
 
@@ -178,8 +100,8 @@ class ApiTest extends TestCase
         $response3 = $this->get('/api/future');
         $response3->assertStatus(400);
 
-        $response4 = $this->get('/api/today?lat=-34.60368440000001&lon=-58.381559100000004');
-        $response4->assertStatus(200);
+        $response1 = $this->get('/api/today?lat='.$this->lat.'&lon='.$this->lon);
+        $response1->assertStatus(200);
 
     }
 

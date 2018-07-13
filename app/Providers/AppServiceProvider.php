@@ -23,8 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
-        $this->app->singleton('DarkSkyConc', function () {
+        $this->app->singleton('DarkSkyConcurrent', function () {
             return new \App\Http\Helpers\DarkSkyConcurrent(new \GuzzleHttp\Client());
         });
     }

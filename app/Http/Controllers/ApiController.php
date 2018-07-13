@@ -8,11 +8,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\App;
+use App\Http\Helpers\DarkSkyConcurrent;
 use Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 
 class ApiController extends Controller
@@ -28,16 +27,25 @@ class ApiController extends Controller
      */
     protected $lon;
 
+    /**
+     * @var DarkSkyConcurrent Service to call DarkSky API
+     */
+    protected $darkSky;
+
+    public function __construct(DarkSkyConcurrent $dSky)
+    {
+        $this->darkSky = $dSky;
+    }
 
     /**
      * This generates the cache key for a latitude+longitude+date
      *
      * @param Request $request Will take lat and lon from request
-     * @param $key  The date of the data we want to save/get
+     * @param string $key  The date of the data we want to save/get
      *
      * @return string
      */
-    protected function _getKey( Request $request, $key) {
+    protected function _getKey(Request $request,string $key) {
         $this->lat = $request->get('lat');
         $this->lon = $request->get('lon');
 
@@ -62,9 +70,7 @@ class ApiController extends Controller
         $cKey = $this->_getKey($request, date('Y-m-d'));
 
         $value = Cache::remember($cKey, env("DARKSKY_CACHE_MINUTES"), function () use ($cKey) {
-            $dsc = App::make('DarkSkyConc'); //service
-
-            return $dsc->location($this->lat, $this->lon)->atTime(time())->daily()[0];
+            return $this->darkSky->location($this->lat, $this->lon)->atTime(time())->daily()[0];
         });
 
         return Response::json($value, 200);
@@ -99,9 +105,7 @@ class ApiController extends Controller
         }
 
         if (count($dates) > 0) {
-            $dsc = App::make('DarkSkyConc'); //service
-
-            $missingValues = $dsc->location($this->lat, $this->lon)->days($dates);
+            $missingValues = $this->darkSky->location($this->lat, $this->lon)->days($dates);
             foreach ($missingValues as $missingVal) {
                 $cKey = $this->_getKey($request, date('Y-m-d', $missingVal->time));
                 Cache::put($cKey, $missingVal, env("DARKSKY_CACHE_HISTORY_MINUTES"));
@@ -131,7 +135,6 @@ class ApiController extends Controller
         for ($i=1;$i<8;$i++) { //1 week
             $day = strtotime("+{$i} day", time());
             $cKey = $this->_getKey($request, date('Y-m-d', $day));
-
             if (Cache::has($cKey)) {
                 $values[] = Cache::get($cKey);
             } else {
@@ -141,9 +144,7 @@ class ApiController extends Controller
 
         // we fetch missing dates from cache
         if (count($dates) > 0) {
-            $dsc = App::make('DarkSkyConc'); //service
-
-            $missingValues = $dsc->location($this->lat, $this->lon)->days($dates);
+            $missingValues = $this->darkSky->location($this->lat, $this->lon)->days($dates);
             foreach ($missingValues as $missingVal) {
                 $cKey = $this->_getKey($request, date('Y-m-d', $missingVal->time));
                 Cache::put($cKey, $missingVal, env("DARKSKY_CACHE_MINUTES"));
