@@ -1,7 +1,7 @@
 # Forecast
 This is a SPA used to display the DarkSky forecast.
 
-## Lang
+## Languages
 - PHP 7.2
 - Npm 6.1
 - Node 10.5

@@ -17,11 +17,27 @@ use Illuminate\Support\Facades\Log;
 
 class ApiController extends Controller
 {
+
+    /**
+     * @var string Latitude
+     */
     protected $lat;
+
+    /**
+     * @var string Longitude
+     */
     protected $lon;
 
 
-    protected function _getKey(Request $request, $key) {
+    /**
+     * This generates the cache key for a latitude+longitude+date
+     *
+     * @param Request $request Will take lat and lon from request
+     * @param $key  The date of the data we want to save/get
+     *
+     * @return string
+     */
+    protected function _getKey( Request $request, $key) {
         $this->lat = $request->get('lat');
         $this->lon = $request->get('lon');
 
@@ -45,10 +61,7 @@ class ApiController extends Controller
     public function forecastToday(Request $request) {
         $cKey = $this->_getKey($request, date('Y-m-d'));
 
-        Log::debug('Fetching forecast [Today: '.$cKey.']');
         $value = Cache::remember($cKey, env("DARKSKY_CACHE_MINUTES"), function () use ($cKey) {
-            Log::debug('Fetching DarkSky API');
-
             $dsc = App::make('DarkSkyConc'); //service
 
             return $dsc->location($this->lat, $this->lon)->atTime(time())->daily()[0];
@@ -80,9 +93,7 @@ class ApiController extends Controller
 
             if (Cache::has($cKey)) {
                 $values[] = Cache::get($cKey);
-                Log::debug('Existing Cache DarkSky:' .date('Y-m-d', $day));
             } else {
-                Log::debug('Fetching DarkSky API:' .date('Y-m-d', $day));
                 $dates[] = $day;
             }
         }
@@ -123,9 +134,7 @@ class ApiController extends Controller
 
             if (Cache::has($cKey)) {
                 $values[] = Cache::get($cKey);
-                Log::debug('Existing Cache DarkSky:' .date('Y-m-d', $day));
             } else {
-                Log::debug('Fetching DarkSky API:' .date('Y-m-d', $day));
                 $dates[] = $day;
             }
         }

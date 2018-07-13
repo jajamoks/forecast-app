@@ -11,6 +11,11 @@
 |
 */
 
+
+/**
+ * We don't have front-end controller (because of vuejs) so we only
+ * need to render the home view to include the javascript components
+ */
 Route::get('/{vue_capture?}', function () {
     return view('home');
 })->where('vue_capture', '[\/\w\.-]*');
